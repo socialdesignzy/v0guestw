@@ -1,0 +1,310 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* React DatePicker Styling */
+.react-datepicker-wrapper {
+  display: inline-block;
+  width: auto;
+}
+
+.react-datepicker {
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  z-index: 50 !important;
+}
+
+.react-datepicker-popper {
+  z-index: 50 !important;
+}
+
+.react-datepicker__header {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.react-datepicker__current-month {
+  font-weight: 600;
+  color: #111827;
+}
+
+.react-datepicker__day--selected {
+  background-color: #3B2ED0 !important;
+  color: white !important;
+}
+
+.react-datepicker__day--today {
+  font-weight: bold;
+  color: #3B2ED0;
+}
+
+.react-datepicker__day:hover {
+  background-color: rgba(59, 46, 208, 0.1);
+}
+
+/* Custom Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out;
+}
+
+/* Landing page: gradient text, float, glow, slide-up, typewriter, marquee */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 46, 208, 0.4), 0 0 40px rgba(79, 70, 229, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(59, 46, 208, 0.6), 0 0 60px rgba(79, 70, 229, 0.3); }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Removed blob animation - not used anymore for performance */
+
+@keyframes fade-in-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px) scale(0.98); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+@keyframes fade-in-smooth {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.text-gradient-animate {
+  background: linear-gradient(90deg, #3B2ED0, #4F46E5, #22D3EE, #3B2ED0);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* Removed unused animations for performance */
+
+.animate-slide-up {
+  animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-fade-in-smooth {
+  animation: fade-in-smooth 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Performance optimizations for smooth scrolling */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Use GPU acceleration for transforms */
+.transform,
+[class*="translate"],
+[class*="scale"],
+[class*="rotate"] {
+  will-change: transform;
+}
+
+/* Optimize transitions */
+.transition-all,
+.transition-transform,
+.transition-shadow,
+.transition-opacity {
+  will-change: auto;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optimize images and media */
+img,
+video {
+  will-change: auto;
+}
+
+@layer base {
+  :root {
+    --background: 220 100% 99%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 248 65% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 248 78% 58%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 188 85% 53%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 248 65% 50%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom Scrollbar Styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(209 213 219) rgb(243 244 246);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}
+
+.dark .scrollbar-thin {
+  scrollbar-color: rgb(75 85 99) rgb(31 41 55);
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-track {
+  background: rgb(31 41 55);
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(75 85 99);
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}
+
+/* ========== Mobile / Wrapped app (Capacitor, PWA) ========== */
+/* Safe area insets for notched devices (Android, iOS) */
+html {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+body {
+  /* Use 100dvh for correct mobile viewport height; fallback to 100vh */
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: rgba(59, 46, 208, 0.15);
+  tap-highlight-color: rgba(59, 46, 208, 0.15);
+}
+
+/* Prevent pull-to-refresh overscroll in wrapped app when not desired */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Touch-friendly hit targets (buttons/links get tap highlight) */
+button, a, [role="button"], [data-state] {
+  touch-action: manipulation;
+}

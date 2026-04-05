@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: guestworker-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: guestworker
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: "lax"
+      - key: ALLOWED_ORIGINS
+        value: "https://guestworker.app,https://app.guestworker.app,https://guestworker.in"
+      - key: PYTHON_VERSION
+        value: "3.13"
+

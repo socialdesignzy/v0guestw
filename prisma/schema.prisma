@@ -1,0 +1,433 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String      @id @default(auto()) @map("_id") @db.ObjectId
+  email                 String      @unique
+  password              String
+  fullName              String?
+  phone                 String?
+  role                  String      @default("contractor") // admin, employer, worker, contractor
+  avatar                String?
+  verified              Boolean     @default(false)
+  lastLogin             DateTime?
+  loginAttempts         Int         @default(0)
+  lockedUntil           DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  // Relations
+  contractor            Contractor?
+  employer              Employer?
+  worker                Worker?
+  sessions              Session[]
+  securityLogs          SecurityLog[]
+  notifications         Notification[]
+  payments              Payment[]
+  advances              Advance[]
+  commissions           Commission[]
+  subscriptions         Subscription[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+model Session {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String      @db.ObjectId
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token         String      @unique
+  expiresAt     DateTime
+  createdAt     DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+model Contractor {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @unique @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName      String?
+  businessType      String?
+  registrationNumber String?
+  bankAccount       String?
+  ifscCode          String?
+  upiId             String?
+  totalWorkers      Int         @default(0)
+  totalEarnings     Float       @default(0)
+  totalAdvances     Float       @default(0)
+  totalCommissions  Float       @default(0)
+  rating            Float       @default(0)
+  status            String      @default("active") // active, inactive, suspended
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  employers         Employer[]
+  workers           Worker[]
+  rooms             Room[]
+  bookings          Booking[]
+  payments          Payment[]
+  advances          Advance[]
+  extraCharges      ExtraCharge[]
+  commissions       Commission[]
+  attendance        Attendance[]
+  subscriptions     Subscription[]
+  
+  @@index([status])
+}
+
+model Employer {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @unique @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  companyName       String?
+  designation       String?
+  totalWorkers      Int         @default(0)
+  totalPayments     Float       @default(0)
+  avgRating         Float       @default(0)
+  status            String      @default("active")
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  workers           Worker[]
+  bookings          Booking[]
+  payments          Payment[]
+  attendance        Attendance[]
+  
+  @@index([contractorId])
+  @@index([status])
+}
+
+model Worker {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @unique @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  employerId        String?     @db.ObjectId
+  employer          Employer?   @relation(fields: [employerId], references: [id], onDelete: SetNull)
+  aadharNumber      String?
+  panNumber         String?
+  bankAccount       String?
+  ifscCode          String?
+  upiId             String?
+  emergencyContact  String?
+  emergencyPhone    String?
+  totalEarnings     Float       @default(0)
+  totalAdvances     Float       @default(0)
+  totalCommissions  Float       @default(0)
+  totalAttendance   Int         @default(0)
+  totalAbsence      Int         @default(0)
+  rating            Float       @default(0)
+  status            String      @default("active") // active, inactive, terminated
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  bookings          Booking[]
+  attendance        Attendance[]
+  advances          Advance[]
+  commissions       Commission[]
+  payments          Payment[]
+  
+  @@index([contractorId])
+  @@index([employerId])
+  @@index([status])
+}
+
+model Room {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  name              String
+  description       String?
+  capacity          Int
+  location          String?
+  price             Float
+  availability      String      @default("available") // available, booked, maintenance
+  totalBookings     Int         @default(0)
+  rating            Float       @default(0)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  bookings          Booking[]
+  
+  @@index([contractorId])
+  @@index([availability])
+}
+
+model Booking {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  roomId            String      @db.ObjectId
+  room              Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  workerId          String      @db.ObjectId
+  worker            Worker      @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  employerId        String      @db.ObjectId
+  employer          Employer    @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  checkInDate       DateTime
+  checkOutDate      DateTime?
+  totalNights       Int
+  pricePerNight     Float
+  totalPrice        Float
+  status            String      @default("booked") // booked, checked_in, checked_out, cancelled
+  paymentStatus     String      @default("pending") // pending, completed, failed
+  paymentId         String?
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  payment           Payment?
+  
+  @@index([roomId])
+  @@index([workerId])
+  @@index([contractorId])
+  @@index([status])
+}
+
+model Attendance {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  workerId          String      @db.ObjectId
+  worker            Worker      @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  employerId        String      @db.ObjectId
+  employer          Employer    @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  date              DateTime
+  status            String      @default("present") // present, absent, half-day, leave
+  hoursWorked       Float?
+  dailyWage         Float?
+  overtime          Float?
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@unique([workerId, employerId, date])
+  @@index([contractorId])
+  @@index([date])
+  @@index([status])
+}
+
+model Payment {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  bookingId         String?     @db.ObjectId
+  booking           Booking?    @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  amount            Float
+  currency          String      @default("INR")
+  paymentMethod     String      @default("razorpay") // razorpay, upi, bank_transfer
+  transactionId     String      @unique
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  status            String      @default("pending") // pending, completed, failed, refunded
+  description       String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([contractorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Advance {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  workerId          String      @db.ObjectId
+  worker            Worker      @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  amount            Float
+  reason            String?
+  status            String      @default("pending") // pending, approved, rejected, disbursed
+  disbursedDate     DateTime?
+  deductionMonths   Int         @default(0)
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([contractorId])
+  @@index([workerId])
+  @@index([status])
+}
+
+model ExtraCharge {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  workerId          String      @db.ObjectId
+  chargeType        String      @default("damage") // damage, absence, late, other
+  amount            Float
+  reason            String?
+  status            String      @default("pending") // pending, approved, rejected, deducted
+  appliedDate       DateTime    @default(now())
+  deductionDate     DateTime?
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([contractorId])
+  @@index([workerId])
+  @@index([status])
+}
+
+model Commission {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  workerId          String      @db.ObjectId
+  worker            Worker      @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  amount            Float
+  percentage        Float       @default(0)
+  commissionType    String      @default("booking") // booking, referral, bonus, other
+  status            String      @default("pending") // pending, approved, paid
+  paidDate          DateTime?
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([contractorId])
+  @@index([workerId])
+  @@index([status])
+}
+
+model Subscription {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractorId      String      @db.ObjectId
+  contractor        Contractor  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  planId            String      @db.ObjectId
+  plan              Plan        @relation(fields: [planId], references: [id], onDelete: Restrict)
+  status            String      @default("active") // active, trial, cancelled, expired
+  trialEndsAt       DateTime?
+  currentPeriodStart DateTime
+  currentPeriodEnd  DateTime
+  razorpaySubscriptionId String?
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([contractorId])
+  @@index([status])
+  @@index([currentPeriodEnd])
+}
+
+model Plan {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  name              String      @unique
+  description       String?
+  monthlyPrice      Float
+  yearlyPrice       Float?
+  trialDays         Int         @default(0)
+  maxWorkers        Int         @default(10)
+  maxRooms          Int         @default(5)
+  features          String[]    @default([])
+  isActive          Boolean     @default(true)
+  razorpayPlanId    String?
+  razorpayYearlyPlanId String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  subscriptions     Subscription[]
+  
+  @@index([isActive])
+}
+
+model SecurityLog {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action            String      // login, logout, failed_login, permission_change, etc
+  ipAddress         String?
+  userAgent         String?
+  success           Boolean     @default(true)
+  details           String?
+  createdAt         DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Notification {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String      @db.ObjectId
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String      // payment, booking, attendance, admin, etc
+  title             String
+  message           String
+  data              String?     // JSON string for additional data
+  isRead            Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model AdminLog {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  action            String
+  entityType        String
+  entityId          String?
+  changes           String?     // JSON string
+  admin             String?
+  ipAddress         String?
+  createdAt         DateTime    @default(now())
+  
+  @@index([action])
+  @@index([createdAt])
+}
+
+model FAQItem {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  category          String
+  question          String
+  answer            String
+  order             Int         @default(0)
+  isActive          Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([category])
+  @@index([isActive])
+}
+
+model Content {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  slug              String      @unique
+  title             String
+  content           String
+  type              String      // page, help, legal
+  metadata          String?     // JSON string
+  isPublished       Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([slug])
+  @@index([type])
+}
