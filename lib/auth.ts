@@ -1,9 +1,5 @@
-import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'dev-secret-key'
-);
+import * as crypto from 'crypto';
 
 export interface JWTPayload {
   userId: string;
@@ -14,10 +10,9 @@ export interface JWTPayload {
 }
 
 export async function signToken(payload: Omit<JWTPayload, 'iat' | 'exp'>) {
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'dev-secret-key');
+  const secret = process.env.JWT_SECRET || 'dev-secret-key';
   
   const token = await new Promise<string>((resolve, reject) => {
-    const crypto = require('crypto');
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const body = Buffer.from(JSON.stringify({
       ...payload,
@@ -37,9 +32,33 @@ export async function signToken(payload: Omit<JWTPayload, 'iat' | 'exp'>) {
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'dev-secret-key');
-    const verified = await jwtVerify(token, secret);
-    return verified.payload as JWTPayload;
+    const secret = process.env.JWT_SECRET || 'dev-secret-key';
+    const parts = token.split('.');
+    
+    if (parts.length !== 3) {
+      return null;
+    }
+    
+    const [headerB64, bodyB64, signatureB64] = parts;
+    
+    // Verify signature
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(`${headerB64}.${bodyB64}`);
+    const expectedSignature = hmac.digest('base64url');
+    
+    if (signatureB64 !== expectedSignature) {
+      return null;
+    }
+    
+    // Decode payload
+    const payload = JSON.parse(Buffer.from(bodyB64, 'base64url').toString());
+    
+    // Check expiration
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+    
+    return payload as JWTPayload;
   } catch (err) {
     return null;
   }
